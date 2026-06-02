@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!--
+  CANONICAL URL NOTE
+  ------------------
+  This site currently lives at https://skyllc-ai.github.io/ (free GitHub Pages org page).
+  When the custom domain (e.g. skyllc.ai) is purchased:
+    1. Add a CNAME file at repo root containing the bare domain.
+    2. Configure DNS + the domain in repo Settings -> Pages.
+    3. Update the <link rel="canonical"> and og:url below to the new domain.
+  GitHub Pages will 301-redirect the github.io URLs automatically, so existing
+  shared links (HN / Reddit / LinkedIn) keep working.
+-->
+<title>UFFS — Benchmark-driven NTFS search for Windows</title>
+<meta name="description" content="UltraFastFileSearch (UFFS) is a benchmark-driven NTFS search engine for Windows, built in Rust. Direct MFT reading, a compact persisted index, and a warm daemon — with one engine behind CLI, TUI, API, and MCP.">
+<link rel="canonical" href="https://skyllc-ai.github.io/">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="UFFS — Benchmark-driven NTFS search for Windows">
+<meta property="og:description" content="Wire-speed search across your NTFS drives. No indexing. No waiting. A Rust-native engine, benchmarked honestly against Everything — with an MCP layer for AI agents.">
+<meta property="og:url" content="https://skyllc-ai.github.io/">
+<meta property="og:image" content="https://skyllc-ai.github.io/assets/brand/uffs-hero-1024.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="UFFS — Benchmark-driven NTFS search for Windows">
+<meta name="twitter:description" content="Wire-speed NTFS search in Rust, benchmarked honestly against Everything. Cold / warm / hot architecture, one engine across CLI, TUI, API, and MCP.">
+<meta name="twitter:image" content="https://skyllc-ai.github.io/assets/brand/uffs-hero-1024.png">
+
+<link rel="icon" href="assets/brand/web/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/brand/web/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/brand/web/favicon-16x16.png">
+<link rel="apple-touch-icon" href="assets/brand/web/apple-touch-icon.png">
+
+<style>
+  :root {
+    --bg: #0b0e14;
+    --bg-elev: #121724;
+    --bg-card: #161c2b;
+    --border: #243049;
+    --text: #e6ebf5;
+    --muted: #9aa6c0;
+    --accent: #4ea1ff;
+    --accent-2: #5ee0a0;
+    --warn: #f0b35b;
+    --max: 1080px;
+    --radius: 14px;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 0 22px; }
+  section { padding: 64px 0; border-top: 1px solid var(--border); }
+  h1, h2, h3 { line-height: 1.2; margin: 0 0 14px; }
+  h2 { font-size: 1.7rem; letter-spacing: -0.01em; }
+  h3 { font-size: 1.1rem; }
+  p { margin: 0 0 14px; }
+  .muted { color: var(--muted); }
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.74rem;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  /* Header / nav */
+  header.nav {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(11,14,20,0.82);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .nav-logo { height: 26px; width: auto; }
+  .nav-links { display: flex; gap: 22px; align-items: center; }
+  .nav-links a { color: var(--muted); font-size: 0.92rem; font-weight: 500; }
+  .nav-links a:hover { color: var(--text); text-decoration: none; }
+  @media (max-width: 720px) { .nav-links a.hide-sm { display: none; } }
+
+  /* Hero */
+  .hero { text-align: center; padding: 84px 0 56px; border-top: none; }
+  .hero img.wordmark { height: 60px; width: auto; margin-bottom: 26px; }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.1rem);
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  .hero .lede { font-size: 1.18rem; color: var(--muted); max-width: 720px; margin: 0 auto 30px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 30px; }
+  .badge {
+    font-size: 0.8rem; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 5px 13px; background: var(--bg-elev);
+  }
+  .badge b { color: var(--text); }
+
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 22px; border-radius: 10px; font-weight: 600; font-size: 0.98rem;
+    border: 1px solid var(--border); cursor: pointer; transition: transform .06s ease, background .15s ease;
+  }
+  .btn:hover { text-decoration: none; transform: translateY(-1px); }
+  .btn-primary { background: var(--accent); color: #04122b; border-color: var(--accent); }
+  .btn-ghost { background: var(--bg-elev); color: var(--text); }
+
+  /* Proof strip */
+  .proof { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 8px; }
+  @media (max-width: 880px) { .proof { grid-template-columns: repeat(2, 1fr); } }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px;
+  }
+  .stat .num { font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em; color: var(--accent-2); }
+  .stat .lbl { font-size: 0.9rem; color: var(--muted); margin-top: 4px; }
+  .stat .ver { font-size: 0.72rem; color: var(--muted); opacity: 0.7; margin-top: 8px; font-family: var(--mono); }
+
+  /* Generic card grid */
+  .grid { display: grid; gap: 18px; }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 820px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px;
+  }
+  .card h3 { color: var(--text); }
+  .card p { color: var(--muted); margin-bottom: 0; }
+
+  /* Charts */
+  .charts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  @media (max-width: 820px) { .charts { grid-template-columns: 1fr; } }
+  .chart {
+    background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px; overflow: hidden;
+  }
+  .chart img { width: 100%; height: auto; display: block; }
+  .chart figcaption { color: var(--muted); font-size: 0.86rem; padding: 12px 4px 2px; background: var(--bg); margin: 10px -14px -14px; padding-left: 18px; padding-right: 18px; padding-bottom: 14px; }
+
+  /* Install / code */
+  pre {
+    background: #0a0d15; border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: 0.92rem;
+    color: #cdd6f4; margin: 0 0 12px;
+  }
+  pre .c { color: var(--accent-2); }
+  pre .d { color: var(--muted); }
+
+  ul.clean { list-style: none; padding: 0; margin: 0; }
+  ul.clean li { padding: 7px 0 7px 26px; position: relative; color: var(--muted); }
+  ul.clean li::before { content: "›"; position: absolute; left: 6px; color: var(--accent); font-weight: 700; }
+  ul.clean li b { color: var(--text); }
+
+  .note {
+    border-left: 3px solid var(--warn); background: rgba(240,179,91,0.06);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; color: var(--muted); font-size: 0.95rem;
+  }
+
+  footer { border-top: 1px solid var(--border); padding: 40px 0 60px; color: var(--muted); font-size: 0.9rem; }
+  footer a { color: var(--muted); }
+  footer a:hover { color: var(--text); }
+  .foot-row { display: flex; flex-wrap: wrap; gap: 26px; justify-content: space-between; align-items: flex-start; }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <img class="nav-logo" src="assets/brand/uffs-wordmark.png" alt="UFFS">
+    <nav class="nav-links">
+      <a class="hide-sm" href="#benchmarks">Benchmarks</a>
+      <a class="hide-sm" href="#architecture">Architecture</a>
+      <a class="hide-sm" href="#install">Install</a>
+      <a href="https://github.com/skyllc-ai/UltraFastFileSearch">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="wrap hero">
+  <img class="wordmark" src="assets/brand/uffs-wordmark.png" alt="UltraFastFileSearch">
+  <h1>Search NTFS at machine speed.</h1>
+  <p class="lede">
+    UFFS is a <b>benchmark-driven NTFS search engine for Windows</b>, built in Rust. It reads the
+    Master File Table directly, builds a compact persisted index, and keeps large NTFS estates
+    searchable through a warm daemon — with one engine behind CLI, TUI, API, and MCP.
+  </p>
+  <div class="badges">
+    <span class="badge"><b>Rust</b>-native</span>
+    <span class="badge">Open source · <b>MPL-2.0</b></span>
+    <span class="badge"><b>100.4M</b>-record scale-tested</span>
+    <span class="badge">Direct <b>MFT</b> read</span>
+    <span class="badge"><b>MCP</b>-ready</span>
+  </div>
+  <div class="cta-row">
+    <a class="btn btn-primary" href="https://github.com/skyllc-ai/UltraFastFileSearch/releases/latest">Download for Windows</a>
+    <a class="btn btn-ghost" href="#benchmarks">See the benchmarks</a>
+    <a class="btn btn-ghost" href="https://github.com/skyllc-ai/UltraFastFileSearch">Star on GitHub</a>
+  </div>
+</div>
+
+<!-- PROOF STRIP -->
+<section id="proof" style="border-top:none; padding-top:8px;">
+  <div class="wrap">
+    <div class="proof">
+      <div class="stat">
+        <div class="num">12 / 12</div>
+        <div class="lbl">head-to-head cells faster than Everything (p50, drives C+D)</div>
+        <div class="ver">median 0.51× · ~1.96× faster · v0.5.66</div>
+      </div>
+      <div class="stat">
+        <div class="num">0–3 ms</div>
+        <div class="lbl">daemon-side latency for targeted queries at 26M records</div>
+        <div class="ver">29–32 ms CLI end-to-end · v0.5.71</div>
+      </div>
+      <div class="stat">
+        <div class="num">68.5 s</div>
+        <div class="lbl">cold build: raw MFT read + compact index, all 7 drives (25.9M)</div>
+        <div class="ver">5.7 s warm-cache restart · v0.5.71</div>
+      </div>
+      <div class="stat">
+        <div class="num">100.4M</div>
+        <div class="lbl">records scale-ceiling tested with offline MFT clones</div>
+        <div class="ver">v0.5.4 synthetic data</div>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:18px; font-size:0.9rem;">
+      Every number is version-stamped and backed by a raw log. Full methodology, per-drive tables,
+      and the two workloads UFFS is currently <em>slower</em> on are published in the
+      <a href="https://github.com/skyllc-ai/UltraFastFileSearch/tree/main/docs/benchmarks">benchmark hub</a>.
+    </p>
+  </div>
+</section>
+
+<!-- WHAT IT IS -->
+<section id="what">
+  <div class="wrap">
+    <div class="eyebrow">What it is</div>
+    <h2>A specialist retrieval engine, not a file-manager add-on</h2>
+    <p class="muted" style="max-width:760px;">
+      Windows search is often too slow, too fuzzy, or too opaque for power users, developers, and
+      large NTFS estates. UFFS is built for <b>exact filename, path, and metadata search</b> at scales
+      where directory walking and shell search become the bottleneck.
+    </p>
+    <div class="grid grid-3" style="margin-top:24px;">
+      <div class="card">
+        <h3>Direct MFT reading</h3>
+        <p>Reads the NTFS Master File Table directly instead of crawling the filesystem tree.</p>
+      </div>
+      <div class="card">
+        <h3>Compact persisted index</h3>
+        <p>Builds once, serializes a compact index, and restarts warm from cache in seconds.</p>
+      </div>
+      <div class="card">
+        <h3>Warm / hot daemon</h3>
+        <p>A background daemon keeps the index hot so targeted queries answer in single-digit milliseconds.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BENCHMARKS -->
+<section id="benchmarks">
+  <div class="wrap">
+    <div class="eyebrow">Proof first</div>
+    <h2>Benchmarked honestly against Everything — and against its own C++ reference</h2>
+    <p class="muted" style="max-width:780px;">
+      Measured on a real 7-drive, 26M-record Windows 11 system (AMD Ryzen 9 3900XT, 64&nbsp;GB RAM).
+      Cold build, warm restart, and hot query are three different workloads — we measure and publish
+      them separately instead of averaging them into one "startup time" number.
+    </p>
+
+    <div class="charts" style="margin-top:26px;">
+      <figure class="chart">
+        <img src="assets/charts/head-to-head-vs-everything.svg" alt="UFFS wins 12 of 12 head-to-head cells against Everything at p50">
+        <figcaption>12/12 head-to-head cells faster than Everything at p50 (six pattern classes, drives C+D). Median ratio 0.51×.</figcaption>
+      </figure>
+      <figure class="chart">
+        <img src="assets/charts/cold-parity-vs-cpp.svg" alt="UFFS Rust cold start is 2.6x faster than the C++ reference warm-disk read">
+        <figcaption>UFFS cold-builds a 26M-record index (177.4 s) faster than the C++ reference reads the same MFTs warm (457.2 s) — 2.6× faster, while also building the persistent index.</figcaption>
+      </figure>
+      <figure class="chart">
+        <img src="assets/charts/daemon-hot-vs-cpp.svg" alt="Daemon HOT vs per-invocation MFT reread: UFFS 16x faster total">
+        <figcaption>Honest workflow: seven back-to-back queries. UFFS serves from the warm daemon (10.1 s total) vs a full MFT re-read every call (161.0 s) — 16.0× faster.</figcaption>
+      </figure>
+      <figure class="chart">
+        <img src="assets/charts/memory-scales-linearly.svg" alt="UFFS daemon memory scales linearly at about 181 MB per million records">
+        <figcaption>Daemon memory scales linearly at ~181 MB per million records — predictable footprint as estates grow.</figcaption>
+      </figure>
+    </div>
+
+    <div class="card" style="margin-top:24px;">
+      <figure class="chart" style="margin:0;">
+        <img src="assets/charts/full-scan-throughput.svg" alt="Full-scan export: 26M records to CSV in 13.6s at 1.72M records per second">
+      </figure>
+      <p class="muted" style="margin-top:14px;">
+        Bulk path: full-scan export of 26M records to CSV in <b>13.6 s</b> (1.72M records/sec through the
+        full pipeline; 323k rows/sec sustained).
+      </p>
+    </div>
+
+    <div class="note" style="margin-top:24px;">
+      <b>What we do not claim.</b> UFFS is not "the fastest file search on Windows" in every workload.
+      The benchmark hub names two workloads (<code>*</code> top-100 and <code>--sort path</code>) where the
+      current build is slower than its own v0.5.4 baseline, with root causes and tracking. Publishing the
+      regressions is part of the product.
+    </div>
+
+    <div class="cta-row" style="justify-content:flex-start; margin-top:24px;">
+      <a class="btn btn-primary" href="https://github.com/skyllc-ai/UltraFastFileSearch/blob/main/docs/benchmarks/2026-04-v0.5.66-vs-everything-and-cpp.md">Read the full report</a>
+      <a class="btn btn-ghost" href="https://github.com/skyllc-ai/UltraFastFileSearch/blob/main/docs/benchmarks/methodology.md">Fairness methodology</a>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="architecture">
+  <div class="wrap">
+    <div class="eyebrow">Architecture</div>
+    <h2>Cold, warm, hot — one Rust engine, many interfaces</h2>
+    <div class="grid grid-3" style="margin-top:8px;">
+      <div class="card">
+        <h3 style="color:var(--accent-2)">COLD</h3>
+        <p>Raw MFT read, parse, build the compact index, write the cache. The source of truth.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent-2)">WARM</h3>
+        <p>Daemon restarts from the serialized cache in seconds — no re-read of the drive required.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent-2)">HOT</h3>
+        <p>The index is resident in the daemon; targeted queries answer from memory in 0–3 ms.</p>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:24px; max-width:780px;">
+      The same Rust core powers every surface — so humans, scripts, and AI agents all query one engine:
+    </p>
+    <ul class="clean" style="max-width:780px;">
+      <li><b>CLI</b> — scriptable, exact filename / path / metadata search with 40+ filters.</li>
+      <li><b>TUI</b> — interactive terminal UI for live exploration.</li>
+      <li><b>API / daemon</b> — a warm background service for low-latency repeated queries.</li>
+      <li><b>MCP</b> — exposes deterministic local retrieval as tools for AI agents, with explicit, human-controlled actions.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section id="install">
+  <div class="wrap">
+    <div class="eyebrow">Install</div>
+    <h2>Up and running in under a minute</h2>
+    <p class="muted">Windows one-command install via <a href="https://learn.microsoft.com/windows/package-manager/">WinGet</a>:</p>
+    <pre><span class="d"># Windows Package Manager</span>
+winget install <span class="c">SkyLLC.UFFS</span></pre>
+    <p class="muted" style="margin-top:18px;">
+      Or download pre-built binaries directly — each release ships a <code>CHECKSUMS.txt</code> (SHA256),
+      per-crate SBOMs (CycloneDX), and SLSA build-provenance attestations. No build toolchain needed.
+    </p>
+    <div class="grid grid-3" style="margin-top:18px;">
+      <div class="card"><h3>Windows x64</h3><p>CLI + daemon + MCP + MFT tools. Full live-NTFS support. Recommended.</p></div>
+      <div class="card"><h3>macOS (Apple Silicon)</h3><p>Offline MFT analysis. Includes the <code>UFFS.app</code> bundle.</p></div>
+      <div class="card"><h3>Linux x64</h3><p>Offline MFT analysis. Includes <code>install.sh</code>.</p></div>
+    </div>
+    <div class="cta-row" style="justify-content:flex-start; margin-top:22px;">
+      <a class="btn btn-primary" href="https://github.com/skyllc-ai/UltraFastFileSearch/releases/latest">Latest release</a>
+      <a class="btn btn-ghost" href="https://github.com/skyllc-ai/UltraFastFileSearch/blob/main/docs/user-manual/index.md">User manual</a>
+    </div>
+  </div>
+</section>
+
+<!-- DIFFERENTIATORS -->
+<section id="why">
+  <div class="wrap">
+    <div class="eyebrow">Key differentiators</div>
+    <h2>Why a specialist engine?</h2>
+    <div class="grid grid-2" style="margin-top:8px;">
+      <div class="card">
+        <h3>vs. Explorer / Windows Search</h3>
+        <ul class="clean">
+          <li>Deterministic exact match — no fuzzy ranking guesswork.</li>
+          <li>Searches whole NTFS estates, not just indexed locations.</li>
+          <li>Single-digit-ms targeted queries from the warm daemon.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>vs. the UFFS C++ reference</h3>
+        <ul class="clean">
+          <li>2.6× faster cold build while also persisting the index.</li>
+          <li>16× faster on the honest repeated-query workflow.</li>
+          <li>Memory safety without a GC — Rust ownership + borrow checker.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SUPPORT -->
+<section id="support">
+  <div class="wrap" style="text-align:center;">
+    <div class="eyebrow">Open source, forever</div>
+    <h2>Support the engine</h2>
+    <p class="muted" style="max-width:680px; margin:0 auto 26px;">
+      The UFFS platform — engine, daemon, CLI, and MCP server — is MPL-2.0 and will never be made less
+      open. If it saves you time, sponsorship funds a custom domain, code signing, and continued
+      benchmark work.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://opencollective.com/uffs-search">Open Collective</a>
+      <a class="btn btn-ghost" href="https://ko-fi.com/ufffssearch">Ko-fi</a>
+      <a class="btn btn-ghost" href="https://github.com/skyllc-ai/UltraFastFileSearch">GitHub repo</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-row">
+    <div>
+      <img src="assets/brand/uffs-wordmark.png" alt="UFFS" style="height:24px; margin-bottom:10px;"><br>
+      <span class="muted">A Rust-native NTFS search engine by <a href="https://github.com/skyllc-ai">Sky, LLC</a>.</span><br>
+      <span class="muted">Open source · MPL-2.0.</span>
+    </div>
+    <div>
+      <a href="https://github.com/skyllc-ai/UltraFastFileSearch">GitHub</a> &nbsp;·&nbsp;
+      <a href="https://github.com/skyllc-ai/UltraFastFileSearch/tree/main/docs/benchmarks">Benchmarks</a> &nbsp;·&nbsp;
+      <a href="https://github.com/skyllc-ai/UltraFastFileSearch/releases/latest">Releases</a> &nbsp;·&nbsp;
+      <a href="https://github.com/skyllc-ai/UltraFastFileSearch/blob/main/docs/user-manual/index.md">Docs</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
