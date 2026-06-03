@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!--
+    UFFS social / Open Graph card — 1200x630.
+    Source of truth; rasterised to uffs-og-card.png for og:image / twitter:image.
+    Palette mirrors index.html; mark is the UFFS primary glyph (lens + bolt).
+  -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b0e14"/>
+      <stop offset="1" stop-color="#121724"/>
+    </linearGradient>
+    <linearGradient id="accentBar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#4ea1ff"/>
+      <stop offset="1" stop-color="#5ee0a0"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#4ea1ff" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#4ea1ff" stop-opacity="0"/>
+    </radialGradient>
+    <!-- icon gradients -->
+    <linearGradient id="tileBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1E1B18"/>
+      <stop offset="1" stop-color="#0F0D0B"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F7B26B"/>
+      <stop offset="0.5" stop-color="#E3782F"/>
+      <stop offset="1" stop-color="#B03618"/>
+    </linearGradient>
+    <linearGradient id="handle" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#B03618"/>
+      <stop offset="1" stop-color="#CE422B"/>
+    </linearGradient>
+    <style>
+      text { font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif; }
+      .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+    </style>
+  </defs>
+
+  <!-- background -->
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+  <circle cx="1120" cy="40" r="360" fill="url(#glow)"/>
+  <rect width="1200" height="6" fill="url(#accentBar)"/>
+  <rect x="1" y="1" width="1198" height="628" fill="none" stroke="#243049" stroke-width="2"/>
+
+  <!-- brand mark (UFFS primary glyph), 1024 -> ~92px -->
+  <g transform="translate(64,46) scale(0.0898)">
+    <rect x="0" y="0" width="1024" height="1024" rx="208" ry="208" fill="url(#tileBg)"/>
+    <g transform="rotate(45 680 680)">
+      <rect x="680" y="680" width="296" height="92" rx="46" ry="46" fill="url(#handle)"/>
+      <rect x="692" y="692" width="272" height="20" rx="10" ry="10" fill="#F7B26B" opacity="0.55"/>
+    </g>
+    <circle cx="432" cy="432" r="312" fill="#0F0D0B" stroke="#DEA584" stroke-width="36"/>
+    <path d="M 492 192 L 280 468 L 412 468 L 348 688 L 600 392 L 460 392 L 540 192 Z"
+          fill="url(#bolt)" stroke="#2A0E04" stroke-width="10" stroke-linejoin="round"/>
+    <path d="M 282 324 A 180 180 0 0 1 440 240" stroke="#F7D8A8" stroke-width="20"
+          stroke-linecap="round" fill="none" opacity="0.45"/>
+  </g>
+
+  <!-- wordmark -->
+  <text x="178" y="104" font-size="58" font-weight="800" fill="#F2EDE8" letter-spacing="-1">UFFS</text>
+  <text x="181" y="134" font-size="15" font-weight="600" fill="#9aa6c0" letter-spacing="3">ULTRA · FAST · FILE · SEARCH</text>
+  <text x="1136" y="100" font-size="22" fill="#9aa6c0" text-anchor="end" class="mono">skyllc-ai.github.io</text>
+
+  <!-- headline -->
+  <text x="62" y="258" font-size="76" font-weight="800" fill="#e6ebf5" letter-spacing="-2">Search NTFS at machine speed.</text>
+  <text x="64" y="306" font-size="26" fill="#9aa6c0">Benchmark-driven NTFS search for Windows, built in Rust — one engine across CLI · TUI · API · MCP.</text>
+
+  <!-- proof stat cards -->
+  <g>
+    <rect x="64"  y="348" width="342" height="158" rx="14" fill="#161c2b" stroke="#243049"/>
+    <rect x="429" y="348" width="342" height="158" rx="14" fill="#161c2b" stroke="#243049"/>
+    <rect x="794" y="348" width="342" height="158" rx="14" fill="#161c2b" stroke="#243049"/>
+
+    <text x="92"  y="420" font-size="50" font-weight="800" fill="#5ee0a0" letter-spacing="-1">12 / 12</text>
+    <text x="92"  y="454" font-size="17" fill="#9aa6c0">head-to-head cells faster</text>
+    <text x="92"  y="478" font-size="17" fill="#9aa6c0">than Everything (p50)</text>
+
+    <text x="457" y="420" font-size="50" font-weight="800" fill="#5ee0a0" letter-spacing="-1">0–3 ms</text>
+    <text x="457" y="454" font-size="17" fill="#9aa6c0">hot daemon query latency</text>
+    <text x="457" y="478" font-size="17" fill="#9aa6c0">at 26M records</text>
+
+    <text x="822" y="420" font-size="50" font-weight="800" fill="#5ee0a0" letter-spacing="-1">100.4M</text>
+    <text x="822" y="454" font-size="17" fill="#9aa6c0">records scale-tested</text>
+    <text x="822" y="478" font-size="17" fill="#9aa6c0">with offline MFT clones</text>
+  </g>
+
+  <!-- footer: badges + repo -->
+  <g>
+    <rect x="64"  y="556" width="150" height="40" rx="20" fill="#121724" stroke="#243049"/>
+    <text x="139" y="582" font-size="18" font-weight="600" fill="#e6ebf5" text-anchor="middle">Rust-native</text>
+    <rect x="228" y="556" width="120" height="40" rx="20" fill="#121724" stroke="#243049"/>
+    <text x="288" y="582" font-size="18" font-weight="600" fill="#e6ebf5" text-anchor="middle">MPL-2.0</text>
+    <rect x="362" y="556" width="146" height="40" rx="20" fill="#121724" stroke="#243049"/>
+    <text x="435" y="582" font-size="18" font-weight="600" fill="#e6ebf5" text-anchor="middle">MCP-ready</text>
+
+    <text x="1136" y="584" font-size="19" fill="#9aa6c0" text-anchor="end" class="mono">github.com/skyllc-ai/UltraFastFileSearch</text>
+  </g>
+</svg>
