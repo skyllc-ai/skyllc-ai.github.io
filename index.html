@@ -156,6 +156,16 @@
   .chart img { width: 100%; height: auto; display: block; }
   .chart figcaption { color: var(--muted); font-size: 0.86rem; padding: 12px 4px 2px; background: var(--bg); margin: 10px -14px -14px; padding-left: 18px; padding-right: 18px; padding-bottom: 14px; }
 
+  /* Demo clips */
+  .demos { display: grid; gap: 22px; margin-top: 26px; }
+  .demo {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px; margin: 0; overflow: hidden;
+  }
+  .demo img { width: 100%; height: auto; display: block; border-radius: 8px; }
+  .demo figcaption { color: var(--muted); font-size: 0.9rem; padding-top: 12px; }
+  .demo figcaption b { color: var(--text); }
+
   /* Install / code */
   pre {
     background: #0a0d15; border: 1px solid var(--border); border-radius: 10px;
@@ -187,6 +197,7 @@
   <div class="wrap nav-inner">
     <img class="nav-logo" src="assets/brand/uffs-wordmark.png" alt="UFFS">
     <nav class="nav-links">
+      <a class="hide-sm" href="#demo">Demo</a>
       <a class="hide-sm" href="#benchmarks">Benchmarks</a>
       <a class="hide-sm" href="#architecture">Architecture</a>
       <a class="hide-sm" href="#install">Install</a>
@@ -274,6 +285,33 @@
         <h3>Warm / hot daemon</h3>
         <p>A background daemon keeps the index hot so targeted queries answer in single-digit milliseconds.</p>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section id="demo">
+  <div class="wrap">
+    <div class="eyebrow">See it in action</div>
+    <h2>Real binary, real drives, real timings</h2>
+    <p class="muted" style="max-width:780px;">
+      Every clip runs the actual UFFS binary against real NTFS data with unedited timings and result
+      counts — captured with the reproducible
+      <a href="https://github.com/skyllc-ai/UltraFastFileSearch/tree/main/scripts/dev/demo">demo kit</a>.
+    </p>
+    <div class="demos">
+      <figure class="demo">
+        <img src="assets/demo/uffs-tui-short.gif" loading="lazy" alt="UFFS TUI: unzip, run uffs-tui, and browse your real NTFS drives against a hot daemon in seconds.">
+        <figcaption><b>TUI</b> — unzip, run <code>uffs-tui</code>, and browse your own drives in seconds against a hot daemon.</figcaption>
+      </figure>
+      <figure class="demo">
+        <img src="assets/demo/uffs-cli-short.gif" loading="lazy" alt="UFFS CLI: real searches, filters, and aggregations across 25.9M indexed files with measured latency.">
+        <figcaption><b>CLI</b> — real searches, filters, and aggregations across 25.9M+ indexed files with measured latency.</figcaption>
+      </figure>
+      <figure class="demo">
+        <img src="assets/demo/uffs-mcp-claude.gif" loading="lazy" alt="Claude using the UFFS MCP server to find the largest video files and summarize storage by file type.">
+        <figcaption><b>MCP</b> — Claude querying your filesystem through the UFFS MCP server. Deterministic search underneath, MCP on top.</figcaption>
+      </figure>
     </div>
   </div>
 </section>
