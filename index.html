@@ -26,7 +26,7 @@
 <meta property="og:image" content="https://skyllc-ai.github.io/assets/social/uffs-og-card.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="UFFS — search NTFS at machine speed. 12/12 cells faster than Everything (p50), 0–3 ms hot daemon queries, 100.4M records scale-tested. Rust-native, MPL-2.0, MCP-ready.">
+<meta property="og:image:alt" content="UFFS — search NTFS at machine speed. 30/30 cells faster than Everything (p50), 0–3 ms hot daemon queries, 100.4M records scale-tested. Rust-native, MPL-2.0, MCP-ready.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="UFFS — Benchmark-driven NTFS search for Windows">
 <meta name="twitter:description" content="Wire-speed NTFS search in Rust, benchmarked honestly against Everything. Cold / warm / hot architecture, one engine across CLI, TUI, API, and MCP.">
@@ -234,14 +234,14 @@
   <div class="wrap">
     <div class="proof">
       <div class="stat">
-        <div class="num">12 / 12</div>
-        <div class="lbl">head-to-head cells faster than Everything (p50, drives C+D)</div>
-        <div class="ver">median 0.51× · ~1.96× faster · v0.5.66</div>
+        <div class="num">30 / 30</div>
+        <div class="lbl">head-to-head cells faster than Everything (p50, drives C+D+F+G + combined)</div>
+        <div class="ver">median 0.36× · ~2.8× faster · v0.5.120</div>
       </div>
       <div class="stat">
         <div class="num">0–3 ms</div>
         <div class="lbl">daemon-side latency for targeted queries at 26M records</div>
-        <div class="ver">29–32 ms CLI end-to-end · v0.5.71</div>
+        <div class="ver">17–96 ms CLI end-to-end · v0.5.120</div>
       </div>
       <div class="stat">
         <div class="num">68.5 s</div>
@@ -329,16 +329,16 @@
 
     <div class="charts" style="margin-top:26px;">
       <figure class="chart">
-        <img src="assets/charts/head-to-head-vs-everything.svg" alt="UFFS wins 12 of 12 head-to-head cells against Everything at p50">
-        <figcaption>12/12 head-to-head cells faster than Everything at p50 (six pattern classes, drives C+D). Median ratio 0.51×.</figcaption>
+        <img src="assets/charts/head-to-head-vs-everything.svg" alt="UFFS wins 30 of 30 head-to-head cells against Everything at p50">
+        <figcaption>30/30 head-to-head cells faster than Everything at p50 (six pattern classes, drives C+D+F+G + combined). Median ratio 0.36× — every cell published in the April snapshot improved, median −33%. v0.5.120.</figcaption>
       </figure>
       <figure class="chart">
         <img src="assets/charts/cold-parity-vs-cpp.svg" alt="UFFS Rust cold start is 2.6x faster than the C++ reference warm-disk read">
-        <figcaption>UFFS cold-builds a 26M-record index (177.4 s) faster than the C++ reference reads the same MFTs warm (457.2 s) — 2.6× faster, while also building the persistent index.</figcaption>
+        <figcaption>UFFS cold-builds a 26M-record index (177.4 s) faster than the C++ reference reads the same MFTs warm (457.2 s) — 2.6× faster, while also building the persistent index. (v0.5.66 capture.)</figcaption>
       </figure>
       <figure class="chart">
-        <img src="assets/charts/daemon-hot-vs-cpp.svg" alt="Daemon HOT vs per-invocation MFT reread: UFFS 16x faster total">
-        <figcaption>Honest workflow: seven back-to-back queries. UFFS serves from the warm daemon (10.1 s total) vs a full MFT re-read every call (161.0 s) — 16.0× faster.</figcaption>
+        <img src="assets/charts/daemon-hot-vs-cpp.svg" alt="Daemon HOT vs per-invocation MFT reread: UFFS wins 5 of 5 full-scan cells">
+        <figcaption>Full-scan export, daemon HOT vs the C++ reference's per-invocation MFT re-read: 5/5 cells faster (6.6× on the combined four-drive run; targeted queries are 180×–3,400× faster, and the combined regex cell never finished). v0.5.120.</figcaption>
       </figure>
       <figure class="chart">
         <img src="assets/charts/memory-scales-linearly.svg" alt="UFFS daemon memory scales linearly at about 181 MB per million records">
@@ -348,11 +348,11 @@
 
     <div class="card" style="margin-top:24px;">
       <figure class="chart" style="margin:0;">
-        <img src="assets/charts/full-scan-throughput.svg" alt="Full-scan export: 26M records to CSV in 13.6s at 1.72M records per second">
+        <img src="assets/charts/full-scan-throughput.svg" alt="Full-scan export: 23.3M records to CSV in 12.0s at 1.95M records per second">
       </figure>
       <p class="muted" style="margin-top:14px;">
-        Bulk path: full-scan export of 26M records to CSV in <b>13.6 s</b> (1.72M records/sec through the
-        full pipeline; 323k rows/sec sustained).
+        Bulk path: full-scan export of the complete 7-drive estate — <b>23.3M records to CSV in 12.0 s</b>
+        (≈1.95M records/sec end-to-end through the daemon pipe; per-drive peaks of 2.29M rec/s). v0.5.120.
       </p>
     </div>
 
@@ -364,7 +364,7 @@
     </div>
 
     <div class="cta-row" style="justify-content:flex-start; margin-top:24px;">
-      <a class="btn btn-primary" href="https://github.com/skyllc-ai/UltraFastFileSearch/blob/main/docs/benchmarks/2026-04-v0.5.66-vs-everything-and-cpp.md">Read the full report</a>
+      <a class="btn btn-primary" href="https://github.com/skyllc-ai/UltraFastFileSearch/blob/main/docs/benchmarks/2026-06-v0.5.120-vs-everything.md">Read the full report</a>
       <a class="btn btn-ghost" href="https://github.com/skyllc-ai/UltraFastFileSearch/blob/main/docs/benchmarks/methodology.md">Fairness methodology</a>
     </div>
   </div>
@@ -443,7 +443,7 @@ winget install <span class="c">SkyLLC.UFFS</span></pre>
         <h3>vs. the UFFS C++ reference</h3>
         <ul class="clean">
           <li>2.6× faster cold build while also persisting the index.</li>
-          <li>16× faster on the honest repeated-query workflow.</li>
+          <li>180×–3,400× faster on targeted queries; 6.6× on full-scan export (v0.5.120).</li>
           <li>Memory safety without a GC — Rust ownership + borrow checker.</li>
         </ul>
       </div>
