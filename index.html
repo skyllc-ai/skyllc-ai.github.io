@@ -147,7 +147,8 @@
   .card p { color: var(--muted); margin-bottom: 0; }
 
   /* Charts */
-  .charts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .charts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; align-items: start; }
+  .chart-wide { grid-column: 1 / -1; }
   @media (max-width: 820px) { .charts { grid-template-columns: 1fr; } }
   .chart {
     background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
@@ -328,7 +329,7 @@
     </p>
 
     <div class="charts" style="margin-top:26px;">
-      <figure class="chart">
+      <figure class="chart chart-wide">
         <img src="assets/charts/head-to-head-vs-everything.svg" alt="UFFS wins 30 of 30 head-to-head cells against Everything at p50">
         <figcaption>30/30 head-to-head cells faster than Everything at p50 (six pattern classes, drives C+D+F+G + combined). Median ratio 0.36× — every cell published in the April snapshot improved, median −33%. v0.5.120.</figcaption>
       </figure>
@@ -340,7 +341,7 @@
         <img src="assets/charts/daemon-hot-vs-cpp.svg" alt="Daemon HOT vs per-invocation MFT reread: UFFS wins 5 of 5 full-scan cells">
         <figcaption>Full-scan export, daemon HOT vs the C++ reference's per-invocation MFT re-read: 5/5 cells faster (6.6× on the combined four-drive run; targeted queries are 180×–3,400× faster, and the combined regex cell never finished). v0.5.120.</figcaption>
       </figure>
-      <figure class="chart">
+      <figure class="chart chart-wide">
         <img src="assets/charts/memory-scales-linearly.svg" alt="UFFS daemon memory scales linearly at about 181 MB per million records">
         <figcaption>Daemon memory scales linearly at ~181 MB per million records — predictable footprint as estates grow.</figcaption>
       </figure>
