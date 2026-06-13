@@ -39,20 +39,26 @@
 <link rel="apple-touch-icon" href="assets/brand/web/apple-touch-icon.png">
 
 <style>
+  /* Brand kit palette (docs/dev/architecture/brand-kit/STYLE_GUIDE.md):
+     Rust Orange #CE422B on Charcoal #0F0D0B, Ember + Paper Tan accents,
+     Cream/Sand text. Deliberately NOT cool blue. Inter / JetBrains Mono
+     with system fallbacks per the kit (no webfont request — the site
+     makes zero third-party calls). */
   :root {
-    --bg: #0b0e14;
-    --bg-elev: #121724;
-    --bg-card: #161c2b;
-    --border: #243049;
-    --text: #e6ebf5;
-    --muted: #9aa6c0;
-    --accent: #4ea1ff;
-    --accent-2: #5ee0a0;
-    --warn: #f0b35b;
+    --bg: #0F0D0B;
+    --bg-elev: #1E1B18;
+    --bg-card: #26211C;
+    --border: #3B332B;
+    --text: #F2EDE8;
+    --muted: #9A8D82;
+    --accent: #F7B26B;
+    --accent-2: #DEA584;
+    --rust: #CE422B;
+    --warn: #DEA584;
     --max: 1080px;
     --radius: 14px;
-    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -85,7 +91,7 @@
   /* Header / nav */
   header.nav {
     position: sticky; top: 0; z-index: 20;
-    background: rgba(11,14,20,0.82);
+    background: rgba(15,13,11,0.82);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border);
   }
@@ -120,7 +126,7 @@
     border: 1px solid var(--border); cursor: pointer; transition: transform .06s ease, background .15s ease;
   }
   .btn:hover { text-decoration: none; transform: translateY(-1px); }
-  .btn-primary { background: var(--accent); color: #04122b; border-color: var(--accent); }
+  .btn-primary { background: var(--rust); color: #F2EDE8; border-color: var(--rust); }
   .btn-ghost { background: var(--bg-elev); color: var(--text); }
 
   /* Proof strip */
@@ -130,7 +136,7 @@
     background: var(--bg-card); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 20px;
   }
-  .stat .num { font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em; color: var(--accent-2); }
+  .stat .num { font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em; color: var(--rust); }
   .stat .lbl { font-size: 0.9rem; color: var(--muted); margin-top: 4px; }
   .stat .ver { font-size: 0.72rem; color: var(--muted); opacity: 0.7; margin-top: 8px; font-family: var(--mono); }
 
@@ -169,9 +175,9 @@
 
   /* Install / code */
   pre {
-    background: #0a0d15; border: 1px solid var(--border); border-radius: 10px;
+    background: #0B0908; border: 1px solid var(--border); border-radius: 10px;
     padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: 0.92rem;
-    color: #cdd6f4; margin: 0 0 12px;
+    color: #EDE6DE; margin: 0 0 12px;
   }
   pre .c { color: var(--accent-2); }
   pre .d { color: var(--muted); }
@@ -310,8 +316,8 @@
         <figcaption><b>CLI</b> — real searches, filters, and aggregations across 25.9M+ indexed files with measured latency.</figcaption>
       </figure>
       <figure class="demo">
-        <img src="assets/demo/uffs-mcp-claude.gif" loading="lazy" alt="Claude using the UFFS MCP server to find the largest video files and summarize storage by file type.">
-        <figcaption><b>MCP</b> — Claude querying your filesystem through the UFFS MCP server. Deterministic search underneath, MCP on top.</figcaption>
+        <img src="assets/demo/uffs-mcp-claude.gif" loading="lazy" alt="Claude using the UFFS MCP server to find the largest files untouched in over a year — 26M+ records scanned in under 200 ms on a hot daemon, one tool call.">
+        <figcaption><b>MCP</b> — one question to Claude, one UFFS tool call: 26M+ records scanned in under 200 ms (hot daemon), with the measured query time cited in the reply. Deterministic search underneath, MCP on top.</figcaption>
       </figure>
     </div>
   </div>
