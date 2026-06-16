@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>I benchmarked my Rust file search engine against Everything until I ran out of excuses — UFFS</title>
+<meta name="description" content="UFFS wins all 30 measured head-to-head cells against Everything at p50 (median ≈ 2.8× faster) on a real 12.8M-record Windows system. The full story: the methodology I had to fix, the statistical tie I chased for two releases, the workloads I publish that I lose, and the raw logs to reproduce it.">
+<link rel="canonical" href="https://skyllc-ai.github.io/benchmarked-against-everything/">
+
+<meta property="og:type" content="article">
+<meta property="og:title" content="I benchmarked my Rust file search engine against Everything until I ran out of excuses">
+<meta property="og:description" content="UFFS wins all 30 measured head-to-head cells against Everything at p50 on a real 12.8M-record Windows system — with raw logs, full methodology, and the regressions I publish anyway.">
+<meta property="og:url" content="https://skyllc-ai.github.io/benchmarked-against-everything/">
+<meta property="og:image" content="https://skyllc-ai.github.io/assets/social/uffs-og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="UFFS — benchmark-driven NTFS search for Windows, built in Rust. 30/30 cells faster than Everything at p50.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="I benchmarked my Rust file search engine against Everything until I ran out of excuses">
+<meta name="twitter:description" content="UFFS wins all 30 measured head-to-head cells against Everything at p50 — raw logs, full methodology, and the regressions I publish anyway.">
+<meta name="twitter:image" content="https://skyllc-ai.github.io/assets/social/uffs-og-card.png">
+<meta name="twitter:image:alt" content="UFFS — benchmark-driven NTFS search engine for Windows, built in Rust.">
+
+<link rel="icon" href="../assets/brand/web/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/brand/web/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../assets/brand/web/favicon-16x16.png">
+<link rel="apple-touch-icon" href="../assets/brand/web/apple-touch-icon.png">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "I benchmarked my Rust file search engine against Everything until I ran out of excuses",
+  "description": "UFFS wins all 30 measured head-to-head cells against Everything at p50 (median ≈ 2.8× faster) on a real 12.8M-record Windows system, with raw logs and published regressions.",
+  "image": "https://skyllc-ai.github.io/assets/social/uffs-og-card.png",
+  "author": { "@type": "Organization", "name": "Sky, LLC", "url": "https://github.com/skyllc-ai" },
+  "publisher": { "@type": "Organization", "name": "Sky, LLC", "url": "https://github.com/skyllc-ai" },
+  "mainEntityOfPage": "https://skyllc-ai.github.io/benchmarked-against-everything/",
+  "datePublished": "2026-06-16"
+}
+</script>
+
+<style>
+  :root {
+    --bg: #0b0e14;
+    --bg-elev: #121724;
+    --bg-card: #161c2b;
+    --border: #243049;
+    --text: #e6ebf5;
+    --muted: #9aa6c0;
+    --accent: #4ea1ff;
+    --accent-2: #5ee0a0;
+    --warn: #f0b35b;
+    --max: 760px;
+    --radius: 14px;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 0 22px; }
+
+  /* Header / nav */
+  header.nav {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(11,14,20,0.82);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; max-width: 1080px; margin: 0 auto; padding: 0 22px; }
+  .nav-logo { height: 26px; width: auto; }
+  .nav-links { display: flex; gap: 22px; align-items: center; }
+  .nav-links a { color: var(--muted); font-size: 0.92rem; font-weight: 500; }
+  .nav-links a:hover { color: var(--text); text-decoration: none; }
+  @media (max-width: 720px) { .nav-links a.hide-sm { display: none; } }
+
+  /* Article */
+  article { padding: 56px 0 24px; }
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.74rem;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  article h1 {
+    font-size: clamp(1.9rem, 4.5vw, 2.6rem);
+    letter-spacing: -0.02em;
+    line-height: 1.18;
+    margin: 0 0 18px;
+  }
+  .byline { color: var(--muted); font-size: 0.92rem; margin-bottom: 8px; }
+  .lede { font-size: 1.15rem; color: var(--muted); margin: 0 0 14px; }
+  article h2 {
+    font-size: 1.5rem; letter-spacing: -0.01em; line-height: 1.25;
+    margin: 44px 0 14px; padding-top: 8px;
+  }
+  article p { margin: 0 0 18px; }
+  article strong, article b { color: var(--text); }
+  article em { color: #c3cce0; }
+  code {
+    font-family: var(--mono); font-size: 0.9em;
+    background: var(--bg-elev); border: 1px solid var(--border);
+    border-radius: 6px; padding: 1px 6px;
+  }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; margin: 0 0 22px; }
+  table {
+    width: 100%; border-collapse: collapse; font-size: 0.95rem;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden;
+  }
+  th, td { padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--text); font-weight: 700; background: var(--bg-elev); }
+  td.num, th.num { text-align: right; font-family: var(--mono); }
+  tr:last-child td { border-bottom: none; }
+  td .win { color: var(--accent-2); font-weight: 700; }
+
+  pre {
+    background: #0a0d15; border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: 0.92rem;
+    color: #cdd6f4; margin: 0 0 20px;
+  }
+  pre code { background: none; border: none; padding: 0; }
+  pre .c { color: var(--accent-2); }
+  pre .d { color: var(--muted); }
+
+  .note {
+    border-left: 3px solid var(--warn); background: rgba(240,179,91,0.06);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; color: var(--muted);
+    font-size: 0.96rem; margin: 0 0 22px;
+  }
+  .note b { color: var(--text); }
+
+  /* CTA */
+  .cta-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 26px; margin: 40px 0 8px; text-align: center;
+  }
+  .cta-card h3 { margin: 0 0 8px; font-size: 1.25rem; }
+  .cta-card p { color: var(--muted); margin: 0 auto 18px; max-width: 520px; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 22px; border-radius: 10px; font-weight: 600; font-size: 0.98rem;
+    border: 1px solid var(--border); cursor: pointer; transition: transform .06s ease, background .15s ease;
+  }
+  .btn:hover { text-decoration: none; transform: translateY(-1px); }
+  .btn-primary { background: var(--accent); color: #04122b; border-color: var(--accent); }
+  .btn-ghost { background: var(--bg-elev); color: var(--text); }
+
+  footer { border-top: 1px solid var(--border); padding: 40px 0 60px; color: var(--muted); font-size: 0.9rem; margin-top: 48px; }
+  footer a { color: var(--muted); }
+  footer a:hover { color: var(--text); }
+  .foot-row { display: flex; flex-wrap: wrap; gap: 26px; justify-content: space-between; align-items: flex-start; max-width: 1080px; margin: 0 auto; padding: 0 22px; }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a href="/"><img class="nav-logo" src="../assets/brand/uffs-wordmark.png" alt="UFFS"></a>
+    <nav class="nav-links">
+      <a class="hide-sm" href="/#demo">Demo</a>
+      <a class="hide-sm" href="/#benchmarks">Benchmarks</a>
+      <a class="hide-sm" href="/#install">Install</a>
+      <a href="https://github.com/skyllc-ai/UltraFastFileSearch">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<article class="wrap">
+  <div class="eyebrow">Proof first</div>
+  <h1>I benchmarked my Rust file search engine against Everything until I ran out of excuses</h1>
+  <p class="byline">UFFS v0.5.120 · every number version-stamped and backed by a raw log in the
+    <a href="https://github.com/skyllc-ai/UltraFastFileSearch/blob/main/docs/benchmarks/2026-06-v0.5.120-vs-everything.md">benchmark hub</a>.</p>
+
+  <p class="lede">Windows file search has been bad for so long that most people have stopped being angry about it. They just open Explorer, type a name, watch the green progress bar crawl, and accept it the way you accept weather.</p>
+
+  <p>You know the ritual, because everybody's ritual is the same. You know roughly what the file is called, so you type a partial name and hope. When that fails you sort Downloads by date and scroll. When the drive fills up you go hunting for the big files. And every so often you stare at a search result that you know is wrong, because the file exists, you put it there, and the index just didn't feel like telling you. I did all of that for years, on a workstation that makes the problem about as bad as it gets: seven NTFS volumes, NVMe next to old spinning rust, about 23 million files, and the file I want is reliably on the drive I didn't think to search.</p>
+
+  <p>So I built a search engine that reads the NTFS Master File Table directly. This post is about what happened when I benchmarked it properly against the best tool in the category, and about everything I had to fix in my own methodology before I was willing to publish the results.</p>
+
+  <p>The short version: my engine, UFFS, wins all 30 measured head-to-head cells against Everything at p50, with a median ratio of about 0.36×, call it 2.8× faster on the median interactive query. The longer version is more interesting, because it includes a statistical tie I couldn't break for two releases, a workload my competitor's CLI physically cannot run, two regressions in my own engine that I publish anyway, and the list of scenarios where Everything is still the tool you should use.</p>
+
+  <p>If you only trust raw data, skip the prose. The CSVs, the harness scripts, and the methodology are all in the repo. Run <code>just bench-suite</code> on your own machine and tell me where I'm wrong. I mean that literally — the most useful feedback I've gotten so far came from people trying to break the numbers.</p>
+
+  <h2>Some context, and a confession</h2>
+
+  <p>First confession: I'm one of those people for whom Everything is among the first things installed on a fresh Windows box. It earned that. Which is exactly why "just feels faster" wasn't going to cut it when I started claiming my own tool beat it. If you're going to benchmark against the tool the whole community treats as the reference, you'd better show your work.</p>
+
+  <p>Second confession: UFFS started life as a C++ tool. It worked, in the sense that it produced correct results, and it was fast in the sense that re-reading the entire Master File Table on every single invocation can be called fast if you never measure anything. I eventually rewrote it in Rust, with a resident daemon, a compact persisted index, and a parser that doesn't allocate per record.</p>
+
+  <p>I keep the old C++ binary around and benchmark against it every release, partly for honesty and partly, I admit, because it's satisfying. The current numbers: the C++ tool is 182× slower on an exact name lookup on C:, 2,038× slower on a rare extension search on D:, and 3,447× slower on a regex alternation. On the combined four-drive regex cell it did not finish before the harness's 120-second timeout. That's not a dig at C++ the language. It's the cost of an architecture that throws away its index after every query. The lesson was boring and old: the fastest code is the code that doesn't rerun.</p>
+
+  <h2>Why "is it fast" is the wrong question</h2>
+
+  <p>Here's the thing that took me embarrassingly long to internalize: there is no such thing as one file search speed. There are at least four.</p>
+
+  <p>Cold: first index build from raw disk. Warm: restart from a persisted index. Hot: query against a resident index. Bulk: stream the whole result set out. Tools make different tradeoffs across these four, and every "X is faster than Y" claim you've ever read silently picked the one where X looks good. Everything's whole design is optimized to make hot interactive lookups feel instant, and it does that very well. If you benchmark only that, on one laptop drive, with a 50-row result set, you'll conclude there's nothing left to build. I benchmarked wider than that, and the picture changed.</p>
+
+  <p>So the harness measures all of it, with rules that are deliberately boring: both tools fully warm, same drives, same patterns, same output sink, run back to back in randomized order on the same OS page-cache state, ten rounds per cell, p50 and p95 both reported. Everything runs in its own isolated instance scoped to exactly the drives under test, driven through its official <code>es.exe</code> CLI. And every cell reports row counts for both tools, because a latency comparison where one tool returned 30 rows and the other returned 30,000 is not a comparison, it's a rigged demo. Worst observed row drift across the whole run: 3 rows, on live filesystems with 12.8 million file records.</p>
+
+  <h2>The numbers</h2>
+
+  <p>Test machine: Ryzen 9 3900XT, 64&nbsp;GB, Windows 11 Pro 24H2. Four NTFS volumes (two NVMe, one HDD, one removable), 12,815,626 live file records. UFFS v0.5.120 against Everything 1.4.1.1032 via es.exe 1.1.0.30. Six pattern classes: exact name, prefix, rare extension, common extension (<code>*.dll</code>), regex alternation, substring.</p>
+
+  <p>UFFS wins all 30 cells at p50. A few representative ones:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Workload</th><th class="num">UFFS</th><th class="num">Everything</th><th class="num">Ratio</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>C: exact name</td><td class="num">20 ms</td><td class="num">69 ms</td><td class="num"><span class="win">0.29×</span></td></tr>
+        <tr><td>C: <code>*.dll</code> (166,684 rows)</td><td class="num">96 ms</td><td class="num">237 ms</td><td class="num"><span class="win">0.41×</span></td></tr>
+        <tr><td>C: substring (25,320 rows)</td><td class="num">39 ms</td><td class="num">105 ms</td><td class="num"><span class="win">0.37×</span></td></tr>
+        <tr><td>All four drives, <code>*.dll</code> (363,797 rows)</td><td class="num">181 ms</td><td class="num">456 ms</td><td class="num"><span class="win">0.40×</span></td></tr>
+        <tr><td>All four drives, substring</td><td class="num">69 ms</td><td class="num">154 ms</td><td class="num"><span class="win">0.45×</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Median across all 30 cells: 0.36×. Two caveats before you write the comment, because I'd write it too.</p>
+
+  <p>First: six of those 30 cells run on a nearly empty 16&nbsp;GB removable volume where every pattern returns zero matches. Those cells measure pure dispatch overhead, both tools sit under 62 ms, and I report them for completeness, not as wins worth bragging about. Exclude them and the median is 0.38×. The conclusion doesn't move.</p>
+
+  <p>Second: the p95 spikes on the tiny result cells (72 to 131 ms against 20 ms medians) are CLI process spawn, not query cost. The harness launches a fresh <code>uffs.exe</code> every round because that's what a script would do. Daemon-side, those queries are low single-digit milliseconds. I report the end-to-end number anyway because that's what you actually experience at a shell.</p>
+
+  <p>The cell I'm proudest of is the least impressive-looking one. C: prefix search was a statistical tie in every previous snapshot, 99 ms against 97 ms in April, and it ate more profiling time than any other line in that table. In v0.5.120 it's 80 ms against 102 ms. Not a glamorous ratio. It was the last tie on the board, and it's gone. Against our own April snapshot, all 12 previously published cells got faster, median 33% better, while Everything's numbers on the same cells drifted between minus 5 and plus 8 percent.</p>
+
+  <h2>The workload the other tool doesn't run</h2>
+
+  <p>There's one comparison in the report that is deliberately one-sided, and I want to be straight about why. Bulk export: dump every file record on the machine to CSV. Everything's <code>es.exe</code> aborts near its roughly 2&nbsp;GB IPC export ceiling on this workload, so the harness can't measure it. That's a real architectural limit of its CLI path, but it's also a workload Everything was never designed around, so read this section as "what UFFS does" rather than "what Everything loses."</p>
+
+  <p>UFFS streams the complete estate, all seven volumes, 23,322,046 rows, to CSV in 12.0 seconds. That's a sustained 1.95 million records per second out of the daemon, through the query engine, onto disk. It's also 12% faster than the same export in April, which matters to me more than the absolute number, because trend lines are harder to cherry-pick than snapshots.</p>
+
+  <p>This is the workload I actually built UFFS for. Not "find one file fast," which was solved, but "treat 23 million file records as a queryable dataset." Filter by size and age across every drive at once, aggregate, export, script against it, feed it to other tools.</p>
+
+  <h2>What I am not claiming, and what I publish that's ugly</h2>
+
+  <p>I'm not claiming "fastest file search on Windows." Nobody should claim that, the phrase is meaningless without a workload attached. Everything fully warm on a single laptop drive doing type-and-see desktop lookups is excellent, and on some of those scenarios, which my harness does not measure, it is probably still ahead. If that's your whole use case, Everything is free, mature, and you should keep using it. UFFS earns its keep when the words huge, multi-drive, scripted, structured, or agent-accessible describe your problem.</p>
+
+  <div class="note">
+    <b>Published regressions.</b> The benchmark hub also carries a section most marketing departments would veto: known regressions. Right now it lists two. An unbounded full scan with a top-100 limit regressed badly during a sort rewrite, 163 ms to over a second, and <code>--sort path</code> on a 167,000-row drive regressed to 221 ms from a projected 60. Both are root-caused, both have fixes tracked, and both are in the published report with raw logs. A benchmark report that hides the cells its author doesn't like is a report nobody should trust twice, and I'd rather lose a headline than the benefit of the doubt.
+  </div>
+
+  <p>While I'm listing the unflattering parts: UFFS is Windows-only, because the MFT is. It needs Administrator to read the volume handle — that's an NTFS rule, not my choice. The binaries aren't code-signed yet (the certificate is literally the first line item the project's sponsorships fund), so SmartScreen will give you the scary dialog. And it's a young codebase moving fast. You should know all of that before you type the install command.</p>
+
+  <h2>Why it's fast, briefly</h2>
+
+  <p>No magic, just refusing to do work twice. UFFS reads the raw MFT once per index build, in parallel, with a per-record parser that does zero heap allocations and writes straight into column-oriented storage instead of building a vector of structs and converting later. The index persists, so restarts are cheap. A resident daemon keeps it queryable, so the hot path never touches the disk layout at all. Queries compile to operations over columnar data rather than walking a tree of paths.</p>
+
+  <p>Rust deserves a sentence here, but only one, because language evangelism is tedious. What Rust bought me wasn't speed — C++ compiles to the same instructions. It bought me the confidence to make the whole pipeline aggressively parallel and then keep refactoring it across fifty-odd point releases in two months without the category of 3 a.m. memory bugs that made me afraid to touch the old codebase. The strictest lint set Clippy offers is turned on and treated as errors. The compiler is the code reviewer who never gets tired.</p>
+
+  <p>One more thing, mentioned last on purpose because it's the multiplier and not the product: the same daemon speaks MCP, so AI agents can query the index with structured filters instead of stumbling through directory listings one level at a time. Sub-second answers over 23 million records turn out to be what makes "ask your computer where the file is" actually work as a conversation. But that only matters because the engine underneath is real, which is what the rest of this post was about.</p>
+
+  <h2>Try it, or better, try to break it</h2>
+
+  <p>Install on Windows:</p>
+
+  <pre><span class="d"># Windows Package Manager</span>
+winget install <span class="c">SkyLLC.UFFS</span></pre>
+
+  <p>…or grab a binary from the <a href="https://github.com/skyllc-ai/UltraFastFileSearch/releases/latest">releases page</a>, checksums and SBOMs included. The repo has the full benchmark report, the methodology doc, the raw CSVs, and the harness. If your numbers disagree with mine, open an issue with your hardware and I'll take it seriously. The fastest way to keep a benchmark honest is to let strangers run it.</p>
+
+  <div class="cta-card">
+    <h3>Read the receipts</h3>
+    <p>Full per-cell tables, fairness methodology, raw logs, and the regressions — all version-stamped in the repo.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/skyllc-ai/UltraFastFileSearch/blob/main/docs/benchmarks/2026-06-v0.5.120-vs-everything.md">Full benchmark report</a>
+      <a class="btn btn-ghost" href="https://github.com/skyllc-ai/UltraFastFileSearch/blob/main/docs/benchmarks/methodology.md">Methodology</a>
+      <a class="btn btn-ghost" href="https://github.com/skyllc-ai/UltraFastFileSearch">Star on GitHub</a>
+    </div>
+  </div>
+</article>
+
+<footer>
+  <div class="foot-row">
+    <div>
+      <img src="../assets/brand/uffs-wordmark.png" alt="UFFS" style="height:24px; margin-bottom:10px;"><br>
+      <span>A Rust-native NTFS search engine by <a href="https://github.com/skyllc-ai">Sky, LLC</a>.</span><br>
+      <span>Open source · MPL-2.0.</span>
+    </div>
+    <div>
+      <a href="/">Home</a> &nbsp;·&nbsp;
+      <a href="https://github.com/skyllc-ai/UltraFastFileSearch">GitHub</a> &nbsp;·&nbsp;
+      <a href="https://github.com/skyllc-ai/UltraFastFileSearch/tree/main/docs/benchmarks">Benchmarks</a> &nbsp;·&nbsp;
+      <a href="https://github.com/skyllc-ai/UltraFastFileSearch/releases/latest">Releases</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
