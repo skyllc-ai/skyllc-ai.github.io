@@ -65,12 +65,31 @@
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border);
   }
-  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; position: relative; }
   .nav-logo { height: 26px; width: auto; }
   .nav-links { display: flex; gap: 22px; align-items: center; }
   .nav-links a { color: var(--muted); font-size: 0.92rem; font-weight: 500; }
   .nav-links a:hover, .nav-links a.active { color: var(--text); text-decoration: none; }
-  @media (max-width: 720px) { .nav-links a.hide-sm { display: none; } }
+  .nav-menu { display: contents; }
+  .nav-toggle { display: none; }
+  .nav-burger { display: none; cursor: pointer; font-size: 1.4rem; line-height: 1; color: var(--muted); padding: 2px 4px; user-select: none; }
+  .nav-burger:hover { color: var(--text); }
+  @media (max-width: 720px) {
+    .nav-links { gap: 16px; }
+    .nav-burger { display: inline-block; }
+    .nav-menu {
+      display: none;
+      position: absolute; top: 100%; right: 0;
+      flex-direction: column; align-items: stretch;
+      min-width: 190px; margin-top: 1px; padding: 6px 0;
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.45);
+    }
+    .nav-toggle:checked ~ .nav-menu { display: flex; }
+    .nav-menu a { padding: 11px 18px; }
+  }
 
   .page-head { max-width: var(--prose); margin: 0 auto; padding: 56px 22px 8px; }
   .eyebrow {
@@ -106,11 +125,15 @@
   <div class="wrap nav-inner">
     <a href="/"><img class="nav-logo" src="/assets/brand/uffs-wordmark.png" alt="UFFS"></a>
     <nav class="nav-links">
-      <a class="hide-sm" href="/#demo">Demo</a>
-      <a class="hide-sm" href="/#benchmarks">Benchmarks</a>
-      <a class="hide-sm" href="/#install">Install</a>
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true">
+      <span class="nav-menu">
+        <a href="/#demo">Demo</a>
+        <a href="/#benchmarks">Benchmarks</a>
+        <a href="/#install">Install</a>
+      </span>
       <a class="active" href="/blog/">Blog</a>
       <a href="https://github.com/skyllc-ai/UltraFastFileSearch">GitHub</a>
+      <label for="nav-toggle" class="nav-burger" role="button" aria-label="Open menu">&#9776;</label>
     </nav>
   </div>
 </header>
