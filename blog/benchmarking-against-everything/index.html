@@ -171,7 +171,10 @@
     box-shadow: 0 4px 14px rgba(0,0,0,.4);
   }
   .to-top.show { display: inline-flex; }
-  .to-top:hover { background: var(--accent); color: #0F0D0B !important; }
+  /* Real pointers only — a bare :hover sticks on touch and makes the first tap
+     a no-op (applies hover instead of following the link). */
+  @media (hover: hover) { .to-top:hover { background: var(--accent); color: #0F0D0B !important; } }
+  .to-top:active { background: var(--accent); color: #0F0D0B !important; }
   .to-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
   @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 </style>
@@ -327,6 +330,13 @@
       if (!ticking) { ticking = true; requestAnimationFrame(update); }
     }, { passive: true });
     update();
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+      var target = document.getElementById('page-top');
+      if (target) { target.focus({ preventScroll: true }); }
+    });
   })();
 </script>
 
