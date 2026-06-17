@@ -1,0 +1,62 @@
+# Deploy the static site to GitHub Pages, stamping a build version into the
+# footer on every push. Replaces the classic "deploy from a branch" build so
+# the "Site build · …" marker is always accurate (no manual bumping).
+#
+# Requires the repo's Pages source set to "GitHub Actions"
+# (Settings → Pages, or `gh api -X PUT /repos/<o>/<r>/pages -f build_type=workflow`).
+name: Deploy site to Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; let an in-flight run finish (don't cancel a deploy).
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout (full history — needed to count today's builds)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Stamp build version (date · vN-within-day · short SHA)
+        run: |
+          set -euo pipefail
+          DATE=$(git show -s --format=%cd --date=format:'%Y-%m-%d' HEAD)
+          SHA=$(git rev-parse --short HEAD)
+          # vN = how many commits landed on $DATE (this one included).
+          N=$(git log --pretty='%cd' --date=format:'%Y-%m-%d' | grep -c "^${DATE}$")
+          STAMP="${DATE} v${N} (${SHA})"
+          echo "Build stamp: ${STAMP}"
+          sed -i "s|Site build · dev|Site build · ${STAMP}|" index.html
+
+      - name: Assemble publish dir (exclude VCS / CI metadata)
+        run: |
+          mkdir -p _site
+          rsync -a --exclude='.git' --exclude='.github' --exclude='_site' ./ _site/
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
