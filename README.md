@@ -1,11 +1,14 @@
 # skyllc-ai.github.io
 
-Canonical landing page for **UFFS — UltraFastFileSearch**, served free by GitHub Pages at:
+Canonical landing page for **UFFS — UltraFastFileSearch**, served by GitHub Pages at:
 
-> https://skyllc-ai.github.io/
+> **https://uffs.io/**  (`https://skyllc-ai.github.io/` redirects here)
 
 This is the org user-page repo. Any file at the repo root is served from the site root, so
 `index.html` is the homepage. `.nojekyll` tells Pages to serve files verbatim (no Jekyll build).
+
+> **Deploying, the `uffs.io` domain, the footer build stamp, and the "new domain looks
+> blocked" (Umbrella) gotcha → [DEPLOY.md](DEPLOY.md).**
 
 ## Structure
 
