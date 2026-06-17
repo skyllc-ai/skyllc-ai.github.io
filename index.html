@@ -220,23 +220,25 @@
   footer a:hover { color: var(--text); }
   .foot-row { display: flex; flex-wrap: wrap; gap: 26px; justify-content: space-between; align-items: flex-start; }
 
-  /* "↑ Top": a small rust pill pinned to the top-right of the viewport — out
-     of the nav flow (position:fixed) so it never shifts the menu, sitting in
-     the right margin on wide screens (after GitHub). Hidden until scrolled. */
+  /* "↑ Top": the standard fixed bottom-right floating button. Same corner +
+     margin at every screen size (so it never overlaps the nav and is never
+     lost in a wide-screen corner), out of flow, hidden until scrolled. */
   .nav-top {
     display: none;
-    position: fixed; top: 11px; right: 18px; z-index: 30;
-    padding: 5px 13px;
-    border-radius: 999px;
+    position: fixed;
+    right: max(1.25rem, env(safe-area-inset-right));
+    bottom: max(1.25rem, env(safe-area-inset-bottom));
+    z-index: 30;
+    width: 46px; height: 46px;
+    align-items: center; justify-content: center;
+    border-radius: 50%;
     background: var(--rust); color: #fff !important;
-    font-size: 0.8rem; font-weight: 600; white-space: nowrap; line-height: 1.5;
-    box-shadow: 0 2px 10px rgba(0,0,0,.35);
+    font-size: 1.15rem; line-height: 1; text-decoration: none;
+    box-shadow: 0 4px 14px rgba(0,0,0,.4);
   }
-  .nav-top.show { display: inline-block; }
-  .nav-top:hover { background: var(--accent); color: #0F0D0B !important; text-decoration: none; }
-  .nav-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  /* Phones: the burger owns the top-right corner — tuck Top to the left of it. */
-  @media (max-width: 720px) { .nav-top { top: 13px; right: 56px; } }
+  .nav-top.show { display: inline-flex; }
+  .nav-top:hover { background: var(--accent); color: #0F0D0B !important; }
+  .nav-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
   @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 </style>
 </head>
@@ -259,7 +261,6 @@
       </span>
       <a href="/blog/">Blog</a>
       <a href="https://github.com/skyllc-ai/UltraFastFileSearch">GitHub</a>
-      <a href="#page-top" class="nav-top" aria-label="Back to top">&#8593; Top</a>
       <label for="nav-toggle" class="nav-burger" role="button" aria-label="Open menu">&#9776;</label>
     </nav>
   </div>
@@ -546,6 +547,11 @@ winget install <span class="c">SkyLLC.UFFS</span></pre>
     </div>
   </div>
 </footer>
+
+<!-- Back-to-top FAB. MUST live here (a direct <body> child), NOT inside
+     header.nav: the header's backdrop-filter creates a containing block, which
+     would pin this position:fixed button to the header instead of the viewport. -->
+<a href="#page-top" class="nav-top" aria-label="Back to top" title="Back to top">&#8593;</a>
 
 <script>
   // Reveal "↑ Top" once you've scrolled past a fixed threshold. A plain
