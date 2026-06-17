@@ -219,11 +219,34 @@
   footer a { color: var(--muted); }
   footer a:hover { color: var(--text); }
   .foot-row { display: flex; flex-wrap: wrap; gap: 26px; justify-content: space-between; align-items: flex-start; }
+
+  /* Back-to-top: fixed bottom-right, fades in once the header scrolls away. */
+  .to-top {
+    position: fixed;
+    right: max(1.25rem, env(safe-area-inset-right));
+    bottom: max(1.25rem, env(safe-area-inset-bottom));
+    width: 44px; height: 44px;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    background: var(--rust); color: #fff; text-decoration: none;
+    font-size: 1.25rem; line-height: 1;
+    box-shadow: 0 4px 14px rgba(0,0,0,.35);
+    opacity: 0; visibility: hidden; transform: translateY(8px);
+    transition: opacity .25s ease, transform .25s ease, visibility .25s;
+    z-index: 900;
+  }
+  .to-top.show { opacity: 1; visibility: visible; transform: none; }
+  .to-top:hover { background: var(--accent); color: #0F0D0B; }
+  .to-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .to-top { transition: none; transform: none; }
+  }
 </style>
 </head>
 <body>
 
-<header class="nav">
+<header class="nav" id="top" tabindex="-1">
   <div class="wrap nav-inner">
     <img class="nav-logo" src="assets/brand/uffs-wordmark.png" alt="UFFS">
     <nav class="nav-links">
@@ -520,6 +543,20 @@ winget install <span class="c">SkyLLC.UFFS</span></pre>
     </div>
   </div>
 </footer>
+
+<a href="#top" class="to-top" aria-label="Back to top">&#8593;</a>
+<script>
+  // Reveal the back-to-top button once the header has scrolled out of view.
+  // IntersectionObserver = no per-scroll work (vs a throttled scroll handler).
+  (function () {
+    var btn = document.querySelector('.to-top');
+    var top = document.getElementById('top');
+    if (!btn || !top || !('IntersectionObserver' in window)) return;
+    new IntersectionObserver(function (entries) {
+      btn.classList.toggle('show', !entries[0].isIntersecting);
+    }, { rootMargin: '0px' }).observe(top);
+  })();
+</script>
 
 </body>
 </html>
