@@ -220,28 +220,19 @@
   footer a:hover { color: var(--text); }
   .foot-row { display: flex; flex-wrap: wrap; gap: 26px; justify-content: space-between; align-items: flex-start; }
 
-  /* Back-to-top: fixed bottom-right, fades in once the header scrolls away. */
-  .to-top {
-    position: fixed;
-    right: max(1.25rem, env(safe-area-inset-right));
-    bottom: max(1.25rem, env(safe-area-inset-bottom));
-    width: 44px; height: 44px;
-    display: grid; place-items: center;
-    border-radius: 50%;
-    background: var(--rust); color: #fff; text-decoration: none;
-    font-size: 1.25rem; line-height: 1;
-    box-shadow: 0 4px 14px rgba(0,0,0,.35);
-    opacity: 0; visibility: hidden; transform: translateY(8px);
-    transition: opacity .25s ease, transform .25s ease, visibility .25s;
-    z-index: 900;
+  /* "↑ Top" lives in the sticky nav; appears only once you've scrolled past
+     the hero. A small rust pill so it reads as an action, not a section link. */
+  .nav-top {
+    display: none;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--rust); color: #fff !important;
+    font-size: 0.85rem; font-weight: 600; white-space: nowrap;
   }
-  .to-top.show { opacity: 1; visibility: visible; transform: none; }
-  .to-top:hover { background: var(--accent); color: #0F0D0B; }
-  .to-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    .to-top { transition: none; transform: none; }
-  }
+  .nav-top.show { display: inline-block; }
+  .nav-top:hover { background: var(--accent); color: #0F0D0B !important; text-decoration: none; }
+  .nav-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 </style>
 </head>
 <body>
@@ -257,6 +248,7 @@
         <a href="#architecture">Architecture</a>
         <a href="#install">Install</a>
       </span>
+      <a href="#top" class="nav-top" aria-label="Back to top">&#8593; Top</a>
       <a href="/blog/">Blog</a>
       <a href="https://github.com/skyllc-ai/UltraFastFileSearch">GitHub</a>
       <label for="nav-toggle" class="nav-burger" role="button" aria-label="Open menu">&#9776;</label>
@@ -265,7 +257,7 @@
 </header>
 
 <!-- HERO -->
-<div class="wrap hero">
+<div class="wrap hero" id="hero">
   <img class="wordmark" src="assets/brand/uffs-wordmark.png" alt="UltraFastFileSearch">
   <h1>Search NTFS at machine speed.</h1>
   <p class="lede">
@@ -286,8 +278,6 @@
     <a class="btn btn-ghost" href="https://github.com/skyllc-ai/UltraFastFileSearch">Star on GitHub</a>
   </div>
 </div>
-<!-- Back-to-top trigger: reveal the button once the hero has scrolled past. -->
-<span id="scroll-anchor" aria-hidden="true"></span>
 
 <!-- PROOF STRIP -->
 <section id="proof" style="border-top:none; padding-top:8px;">
@@ -548,21 +538,19 @@ winget install <span class="c">SkyLLC.UFFS</span></pre>
   </div>
 </footer>
 
-<a href="#top" class="to-top" aria-label="Back to top">&#8593;</a>
 <script>
-  // Reveal the back-to-top button once the hero has scrolled ABOVE the viewport.
-  // IntersectionObserver = no per-scroll work. NB: we watch a sentinel after the
-  // hero, NOT the header — the header is position:sticky, so it never "leaves"
-  // the viewport and would keep the button hidden forever. boundingClientRect
-  // .top < 0 distinguishes "scrolled past it" from "not reached yet" (both are
-  // non-intersecting), so it stays hidden on first load.
+  // Reveal the "↑ Top" nav item once the hero has scrolled out of view.
+  // We observe the HERO (a real, sized element) — not the sticky header, which
+  // never leaves the viewport. The hero sits at the very top, so it can only be
+  // "not intersecting" when you've scrolled past it (never below), making the
+  // toggle a clean !isIntersecting. No per-scroll work.
   (function () {
-    var btn = document.querySelector('.to-top');
-    var anchor = document.getElementById('scroll-anchor');
-    if (!btn || !anchor || !('IntersectionObserver' in window)) return;
+    var link = document.querySelector('.nav-top');
+    var hero = document.getElementById('hero');
+    if (!link || !hero || !('IntersectionObserver' in window)) return;
     new IntersectionObserver(function (entries) {
-      btn.classList.toggle('show', entries[0].boundingClientRect.top < 0);
-    }).observe(anchor);
+      link.classList.toggle('show', !entries[0].isIntersecting);
+    }, { rootMargin: '-50% 0px 0px 0px' }).observe(hero);
   })();
 </script>
 
