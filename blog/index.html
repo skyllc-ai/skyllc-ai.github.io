@@ -117,9 +117,29 @@
   footer a { color: var(--muted); }
   footer a:hover { color: var(--text); }
   .foot-row { display: flex; flex-wrap: wrap; gap: 26px; justify-content: space-between; align-items: flex-start; }
+
+  /* Back-to-top FAB: fixed bottom-right, revealed after scrolling. */
+  .to-top {
+    display: none;
+    position: fixed;
+    right: max(1.25rem, env(safe-area-inset-right));
+    bottom: max(1.25rem, env(safe-area-inset-bottom));
+    z-index: 30;
+    width: 46px; height: 46px;
+    align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: var(--rust); color: #fff !important;
+    font-size: 1.15rem; line-height: 1; text-decoration: none;
+    box-shadow: 0 4px 14px rgba(0,0,0,.4);
+  }
+  .to-top.show { display: inline-flex; }
+  .to-top:hover { background: var(--accent); color: #0F0D0B !important; }
+  .to-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 </style>
 </head>
 <body>
+<span id="page-top" tabindex="-1"></span>
 
 <header class="nav">
   <div class="wrap nav-inner">
@@ -158,7 +178,8 @@
     <div>
       <a href="/"><img src="/assets/brand/uffs-wordmark.png" alt="UFFS" style="height:24px; margin-bottom:10px;"></a><br>
       <span class="muted">A Rust-native NTFS search engine by <a href="https://github.com/skyllc-ai">Sky, LLC</a>.</span><br>
-      <span class="muted">Open source · MPL-2.0.</span>
+      <span class="muted">Open source · MPL-2.0.</span><br>
+      <span class="muted">Site build · dev</span>
     </div>
     <div>
       <a href="/">Home</a> &nbsp;·&nbsp;
@@ -168,6 +189,27 @@
     </div>
   </div>
 </footer>
+
+<!-- Clearance so the fixed back-to-top button never covers footer content. -->
+<div aria-hidden="true" style="height:80px"></div>
+
+<a href="#page-top" class="to-top" aria-label="Back to top" title="Back to top">&#8593;</a>
+<script>
+  (function () {
+    var link = document.querySelector('.to-top');
+    if (!link) return;
+    var shown = false, ticking = false;
+    function update() {
+      var should = (window.scrollY || document.documentElement.scrollTop) > 240;
+      if (should !== shown) { shown = should; link.classList.toggle('show', should); }
+      ticking = false;
+    }
+    window.addEventListener('scroll', function () {
+      if (!ticking) { ticking = true; requestAnimationFrame(update); }
+    }, { passive: true });
+    update();
+  })();
+</script>
 
 </body>
 </html>

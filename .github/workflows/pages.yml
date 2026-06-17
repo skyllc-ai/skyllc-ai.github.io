@@ -42,7 +42,9 @@ jobs:
           N=$(git log --pretty='%cd' --date=format:'%Y-%m-%d' | grep -c "^${DATE}$")
           STAMP="${DATE} v${N} (${SHA})"
           echo "Build stamp: ${STAMP}"
-          sed -i "s|Site build · dev|Site build · ${STAMP}|" index.html
+          # Stamp every page that carries the placeholder (home + blog pages).
+          grep -rlZ --include='*.html' 'Site build · dev' . \
+            | xargs -0 -r sed -i "s|Site build · dev|Site build · ${STAMP}|"
 
       - name: Assemble publish dir (exclude VCS / CI metadata)
         run: |
